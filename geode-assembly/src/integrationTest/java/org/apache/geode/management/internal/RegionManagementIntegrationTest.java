@@ -23,7 +23,8 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import org.apache.geode.cache.configuration.RegionConfig;
-import org.apache.geode.management.internal.api.ClusterManagementResult;
+import org.apache.geode.management.internal.api.ClusterManagementResultBase;
+import org.apache.geode.management.internal.api.Status;
 import org.apache.geode.test.junit.rules.GeodeDevRestClient;
 import org.apache.geode.test.junit.rules.LocatorStarterRule;
 import org.apache.geode.test.junit.rules.RequiresGeodeHome;
@@ -54,14 +55,12 @@ public class RegionManagementIntegrationTest {
     ObjectMapper mapper = new ObjectMapper();
     String json = mapper.writeValueAsString(regionConfig);
 
-    ClusterManagementResult result =
+    ClusterManagementResultBase response =
         restClient.doPostAndAssert("/regions", json, null, null)
             .hasStatusCode(500)
             .getClusterManagementResult();
-    assertThat(result.isSuccessful()).isFalse();
-    assertThat(result.isSuccessfullyPersisted()).isFalse();
-    assertThat(result.isSuccessfullyAppliedOnMembers()).isFalse();
-    assertThat(result.getPersistenceStatus().getMessage())
+    assertThat(response.getStatus().getResult()).isEqualTo(Status.Result.FAILURE);
+    assertThat(response.getStatus().getMessage())
         .isEqualTo("no members found to create cache element");
   }
 }

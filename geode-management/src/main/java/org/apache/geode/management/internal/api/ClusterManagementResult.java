@@ -17,30 +17,21 @@ package org.apache.geode.management.internal.api;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-
-public class ClusterManagementResult {
+public class ClusterManagementResult extends ClusterManagementResultBase {
   private Map<String, Status> memberStatuses = new HashMap<>();
 
   private Status persistenceStatus = new Status(Status.Result.NOT_APPLICABLE, null);
 
-  public ClusterManagementResult() {}
-
-  public ClusterManagementResult(boolean success, String message) {
-    this.persistenceStatus = new Status(success, message);
+  public ClusterManagementResult() {
+    super();
   }
 
-  public void addMemberStatus(String member, Status.Result result, String message) {
-    this.memberStatuses.put(member, new Status(result, message));
+  public void addMemberStatus(String member, Status status) {
+    this.memberStatuses.put(member, status);
   }
 
-  public void addMemberStatus(String member, boolean success, String message) {
-    this.memberStatuses.put(member, new Status(success, message));
-  }
-
-  public void setClusterConfigPersisted(boolean success, String message) {
-    this.persistenceStatus = new Status(success, message);
+  public void setClusterConfigPersisted(Status status) {
+    this.persistenceStatus = status;
   }
 
   public Map<String, Status> getMemberStatuses() {
@@ -51,17 +42,15 @@ public class ClusterManagementResult {
     return persistenceStatus;
   }
 
-  @JsonIgnore
-  public boolean isSuccessfullyAppliedOnMembers() {
+  private boolean isSuccessfullyAppliedOnMembers() {
     if (memberStatuses.isEmpty()) {
       return false;
     }
-    return memberStatuses.values().stream().allMatch(x -> x.status == Status.Result.SUCCESS);
+    return memberStatuses.values().stream().allMatch(x -> x.result == Status.Result.SUCCESS);
   }
 
-  @JsonIgnore
-  public boolean isSuccessfullyPersisted() {
-    return persistenceStatus.status == Status.Result.SUCCESS;
+  private boolean isSuccessfullyPersisted() {
+    return persistenceStatus.result == Status.Result.SUCCESS;
   }
 
   /**
@@ -70,10 +59,16 @@ public class ClusterManagementResult {
    * or configuration persistence is applicable and successful
    * - false otherwise
    */
-  @JsonIgnore
-  public boolean isSuccessful() {
-    return (persistenceStatus.status == Status.Result.NOT_APPLICABLE || isSuccessfullyPersisted())
-        && isSuccessfullyAppliedOnMembers();
+  @Override
+  public Status getStatus() {
+    boolean success =
+        (persistenceStatus.result == Status.Result.NOT_APPLICABLE || isSuccessfullyPersisted())
+            && isSuccessfullyAppliedOnMembers();
+    if (success) {
+      return new Status(Status.Result.SUCCESS, "Successfully applied configuration change.");
+    } else {
+      return new Status(Status.Result.FAILURE, "Failed to apply configuration change.");
+    }
   }
 
 }

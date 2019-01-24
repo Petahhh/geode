@@ -14,40 +14,20 @@
  */
 package org.apache.geode.management.internal.api;
 
-public class Status {
-  public enum Result {
-    SUCCESS, FAILURE, NOT_APPLICABLE
+public class ClusterManagementResultBase {
+  protected Status status;
+
+  public ClusterManagementResultBase() {}
+
+  public ClusterManagementResultBase(Status status) {
+    this.status = status;
   }
 
-  Result result;
-  String message;
-
-  // needed for json deserialization
-  public Status() {}
-
-  public Status(Result result, String message) {
-    this.result = result;
-    this.message = message;
+  public Status getStatus() {
+    return status;
   }
 
-  public Status(boolean success, String message) {
-    this.result = success ? Result.SUCCESS : Result.FAILURE;
-    this.message = message;
-  }
-
-  public Result getResult() {
-    return result;
-  }
-
-  public void setResult(Result result) {
-    this.result = result;
-  }
-
-  public String getMessage() {
-    return message;
-  }
-
-  public void setMessage(String message) {
-    this.message = message;
+  public void setStatus(Status status) {
+    this.status = status;
   }
 }

@@ -32,8 +32,9 @@ import org.springframework.web.context.ServletContextAware;
 import org.apache.geode.internal.logging.LogService;
 import org.apache.geode.internal.security.SecurityService;
 import org.apache.geode.management.internal.JettyHelper;
-import org.apache.geode.management.internal.api.ClusterManagementResult;
+import org.apache.geode.management.internal.api.ClusterManagementResultBase;
 import org.apache.geode.management.internal.api.LocatorClusterManagementService;
+import org.apache.geode.management.internal.api.Status;
 import org.apache.geode.security.AuthenticationFailedException;
 import org.apache.geode.security.NotAuthorizedException;
 
@@ -54,36 +55,42 @@ public class AbstractManagementController implements ServletContextAware {
   private static final Logger logger = LogService.getLogger();
 
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ClusterManagementResult> internalError(final Exception e) {
+  public ResponseEntity<ClusterManagementResultBase> internalError(final Exception e) {
     logger.error(e.getMessage(), e);
-    return new ResponseEntity<>(new ClusterManagementResult(false, e.getMessage()),
+    return new ResponseEntity<>(
+        new ClusterManagementResultBase(new Status(Status.Result.FAILURE, e.getMessage())),
         HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
   @ExceptionHandler(AuthenticationFailedException.class)
-  public ResponseEntity<ClusterManagementResult> unauthorized(AuthenticationFailedException e) {
-    return new ResponseEntity<>(new ClusterManagementResult(false, e.getMessage()),
+  public ResponseEntity<ClusterManagementResultBase> unauthorized(AuthenticationFailedException e) {
+    return new ResponseEntity<>(
+        new ClusterManagementResultBase(new Status(Status.Result.FAILURE, e.getMessage())),
         HttpStatus.UNAUTHORIZED);
   }
 
   @ExceptionHandler({NotAuthorizedException.class, SecurityException.class})
-  public ResponseEntity<ClusterManagementResult> forbidden(Exception e) {
+  public ResponseEntity<ClusterManagementResultBase> forbidden(Exception e) {
     logger.info(e.getMessage());
-    return new ResponseEntity<>(new ClusterManagementResult(false, e.getMessage()),
+    return new ResponseEntity<>(
+        new ClusterManagementResultBase(new Status(Status.Result.FAILURE, e.getMessage())),
         HttpStatus.FORBIDDEN);
   }
 
   @ExceptionHandler(MalformedObjectNameException.class)
-  public ResponseEntity<ClusterManagementResult> badRequest(final MalformedObjectNameException e) {
+  public ResponseEntity<ClusterManagementResultBase> badRequest(
+      final MalformedObjectNameException e) {
     logger.info(e.getMessage(), e);
-    return new ResponseEntity<>(new ClusterManagementResult(false, e.getMessage()),
+    return new ResponseEntity<>(
+        new ClusterManagementResultBase(new Status(Status.Result.FAILURE, e.getMessage())),
         HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(InstanceNotFoundException.class)
-  public ResponseEntity<ClusterManagementResult> notFound(final InstanceNotFoundException e) {
+  public ResponseEntity<ClusterManagementResultBase> notFound(final InstanceNotFoundException e) {
     logger.info(e.getMessage(), e);
-    return new ResponseEntity<>(new ClusterManagementResult(false, e.getMessage()),
+    return new ResponseEntity<>(
+        new ClusterManagementResultBase(new Status(Status.Result.FAILURE, e.getMessage())),
         HttpStatus.NOT_FOUND);
   }
 
@@ -96,10 +103,11 @@ public class AbstractManagementController implements ServletContextAware {
    * @return a ResponseEntity with an appropriate HTTP status code (403 - Forbidden)
    */
   @ExceptionHandler(AccessDeniedException.class)
-  public ResponseEntity<ClusterManagementResult> handleException(
+  public ResponseEntity<ClusterManagementResultBase> handleException(
       final AccessDeniedException cause) {
     logger.info(cause.getMessage(), cause);
-    return new ResponseEntity<>(new ClusterManagementResult(false, cause.getMessage()),
+    return new ResponseEntity<>(
+        new ClusterManagementResultBase(new Status(Status.Result.FAILURE, cause.getMessage())),
         HttpStatus.FORBIDDEN);
   }
 

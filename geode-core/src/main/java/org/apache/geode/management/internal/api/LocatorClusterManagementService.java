@@ -79,20 +79,19 @@ public class LocatorClusterManagementService implements ClusterManagementService
         targetedMembers);
     functionResults
         .forEach(functionResult -> result.addMemberStatus(functionResult.getMemberIdOrName(),
-            functionResult.isSuccessful(),
-            functionResult.getStatusMessage()));
+            new Status(functionResult.isSuccessful(), functionResult.getStatusMessage())));
 
     // persist configuration in cache config
     if (configurationPersistenceEnabled) {
       persistenceService.updateCacheConfig(group, cacheConfigForGroup -> {
         try {
           configurationMutator.add(config, cacheConfigForGroup);
-          result.setClusterConfigPersisted(true,
-              "successfully persisted config for " + group);
+          result.setClusterConfigPersisted(new Status(true,
+              "successfully persisted config for " + group));
         } catch (Exception e) {
           String message = "failed to update cluster config for " + group;
           logger.error(message, e);
-          result.setClusterConfigPersisted(false, message);
+          result.setClusterConfigPersisted(new Status(false, message));
           return null;
         }
 

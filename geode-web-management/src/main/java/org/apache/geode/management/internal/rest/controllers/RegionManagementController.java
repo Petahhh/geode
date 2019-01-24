@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import org.apache.geode.cache.configuration.RegionConfig;
 import org.apache.geode.management.internal.api.ClusterManagementResult;
+import org.apache.geode.management.internal.api.ClusterManagementResultBase;
+import org.apache.geode.management.internal.api.Status;
 
 @Controller("regionManagement")
 @RequestMapping(MANAGEMENT_API_VERSION)
@@ -34,11 +36,11 @@ public class RegionManagementController extends AbstractManagementController {
 
   @PreAuthorize("@securityService.authorize('DATA', 'MANAGE')")
   @RequestMapping(method = RequestMethod.POST, value = "/regions")
-  public ResponseEntity<ClusterManagementResult> createRegion(
+  public ResponseEntity<ClusterManagementResultBase> createRegion(
       @RequestBody RegionConfig regionConfig) {
-    ClusterManagementResult result =
-        clusterManagementService.create(regionConfig);
+    ClusterManagementResult result = clusterManagementService.create(regionConfig);
     return new ResponseEntity<>(result,
-        result.isSuccessful() ? HttpStatus.CREATED : HttpStatus.INTERNAL_SERVER_ERROR);
+        result.getStatus().getResult() == Status.Result.SUCCESS ? HttpStatus.CREATED
+            : HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

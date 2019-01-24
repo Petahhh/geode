@@ -62,33 +62,33 @@ public class RegionManagementSecurityIntegrationTest {
   }
 
   @Test
-  public void sanityCheck_not_authorized() throws Exception {
+  public void failsIfNotAuthorized() throws Exception {
     ClusterManagementResultBase response =
         restClient.doPostAndAssert("/regions", json, "test", "test")
             .hasStatusCode(403)
-            .getClusterManagementResult();
+            .getClusterManagementResultBase();
     assertThat(response.getStatus().getResult()).isEqualTo(Status.Result.FAILURE);
     assertThat(response.getStatus().getMessage()).isEqualTo("Access is denied");
   }
 
   @Test
-  public void sanityCheckWithNoCredentials() throws Exception {
+  public void failsIfNoCredentials() throws Exception {
     restClient.doPostAndAssert("/regions", json, null, null)
         .hasStatusCode(401);
   }
 
   @Test
-  public void sanityCheckWithWrongCredentials() throws Exception {
+  public void failsIfWrongCredentials() throws Exception {
     restClient.doPostAndAssert("/regions", json, "test", "invalid_pswd")
         .hasStatusCode(401);
   }
 
   @Test
-  public void sanityCheck_success() throws Exception {
+  public void authorizesCorrectlyButFailsSinceNoMembersExist() throws Exception {
     ClusterManagementResultBase response =
         restClient.doPostAndAssert("/regions", json, "dataManage", "dataManage")
             .hasStatusCode(500)
-            .getClusterManagementResult();
+            .getClusterManagementResultBase();
     assertThat(response.getStatus().getResult()).isEqualTo(Status.Result.FAILURE);
     assertThat(response.getStatus().getMessage())
         .isEqualTo("no members found to create cache element");

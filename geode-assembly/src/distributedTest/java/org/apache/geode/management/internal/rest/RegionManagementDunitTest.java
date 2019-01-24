@@ -26,6 +26,7 @@ import org.apache.geode.cache.Region;
 import org.apache.geode.cache.configuration.CacheConfig;
 import org.apache.geode.cache.configuration.RegionConfig;
 import org.apache.geode.management.internal.api.ClusterManagementResult;
+import org.apache.geode.management.internal.api.Status;
 import org.apache.geode.test.dunit.rules.ClusterStartupRule;
 import org.apache.geode.test.dunit.rules.MemberVM;
 import org.apache.geode.test.junit.rules.GeodeDevRestClient;
@@ -48,20 +49,18 @@ public class RegionManagementDunitTest {
   }
 
   @Test
-  public void createRegion() throws Exception {
+  public void createsARegion() throws Exception {
     RegionConfig regionConfig = new RegionConfig();
     regionConfig.setName("customers");
     regionConfig.setRefid("REPLICATE");
     ObjectMapper mapper = new ObjectMapper();
     String json = mapper.writeValueAsString(regionConfig);
 
-    ClusterManagementResult result =
-        restClient.doPostAndAssert("/regions", json, "test", "test")
-            .hasStatusCode(201)
-            .getClusterManagementResult();
+    ClusterManagementResult result = restClient.doPostAndAssert("/regions", json, "test", "test")
+        .hasStatusCode(201)
+        .getClusterManagementResult();
 
-    assertThat(result.isSuccessfullyAppliedOnMembers()).isTrue();
-    assertThat(result.isSuccessfullyPersisted()).isTrue();
+    assertThat(result.getStatus().getResult()).isEqualTo(Status.Result.SUCCESS);
     assertThat(result.getMemberStatuses()).containsKeys("server-1").hasSize(1);
 
     // make sure region is created

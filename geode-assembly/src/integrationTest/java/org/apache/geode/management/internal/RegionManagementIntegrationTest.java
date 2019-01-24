@@ -47,7 +47,7 @@ public class RegionManagementIntegrationTest {
   }
 
   @Test
-  public void sanityCheck() throws Exception {
+  public void failsIfNoMembersExists() throws Exception {
     RegionConfig regionConfig = new RegionConfig();
     regionConfig.setName("customers");
     regionConfig.setRefid("REPLICATE");
@@ -58,7 +58,7 @@ public class RegionManagementIntegrationTest {
     ClusterManagementResultBase response =
         restClient.doPostAndAssert("/regions", json, null, null)
             .hasStatusCode(500)
-            .getClusterManagementResult();
+            .getClusterManagementResultBase();
     assertThat(response.getStatus().getResult()).isEqualTo(Status.Result.FAILURE);
     assertThat(response.getStatus().getMessage())
         .isEqualTo("no members found to create cache element");

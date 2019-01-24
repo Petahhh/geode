@@ -36,7 +36,7 @@ public class RegionConfigRealizer implements ConfigurationRealizer<RegionConfig>
     }
 
     RegionAttributesType regionAttributes = regionConfig.getRegionAttributes();
-    switch (regionConfig.getRefid()) {
+    switch (regionConfig.getType()) {
       case "PARTITION":
         regionAttributes.setDataPolicy(RegionAttributesDataPolicy.PARTITION);
         RegionAttributesType.PartitionAttributes partitionAttributes =

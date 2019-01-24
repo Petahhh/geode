@@ -46,7 +46,7 @@ public class RegionConfigRealizerTest {
   public void createsPartitionedInCache() {
     RegionConfig config = new RegionConfig();
     config.setName("regionName");
-    config.setRefid("PARTITION");
+    config.setType("PARTITION");
 
     RegionConfigRealizer subject = new RegionConfigRealizer();
     subject.create(config, cache);
@@ -70,7 +70,7 @@ public class RegionConfigRealizerTest {
   public void createsReplicateInCache() {
     RegionConfig config = new RegionConfig();
     config.setName("regionName");
-    config.setRefid("REPLICATE");
+    config.setType("REPLICATE");
 
     RegionConfigRealizer subject = new RegionConfigRealizer();
     subject.create(config, cache);

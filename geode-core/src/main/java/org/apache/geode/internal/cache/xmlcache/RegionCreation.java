@@ -351,7 +351,7 @@ public class RegionCreation implements Region, Extensible<Region<?, ?>> {
   }
 
   /**
-   * Note: hydra invokes this with setRefid=false.
+   * Note: hydra invokes this with setType=false.
    */
   public void setAttributes(RegionAttributes attrs, boolean setRefid) {
     this.hasAttributes = true;

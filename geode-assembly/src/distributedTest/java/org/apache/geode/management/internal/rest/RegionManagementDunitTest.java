@@ -17,14 +17,12 @@ package org.apache.geode.management.internal.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.configuration.CacheConfig;
-import org.apache.geode.cache.configuration.RegionConfig;
 import org.apache.geode.management.internal.api.ClusterManagementResult;
 import org.apache.geode.management.internal.api.Status;
 import org.apache.geode.test.dunit.rules.ClusterStartupRule;
@@ -50,11 +48,7 @@ public class RegionManagementDunitTest {
 
   @Test
   public void createsARegion() throws Exception {
-    RegionConfig regionConfig = new RegionConfig();
-    regionConfig.setName("customers");
-    regionConfig.setRefid("REPLICATE");
-    ObjectMapper mapper = new ObjectMapper();
-    String json = mapper.writeValueAsString(regionConfig);
+    String json = "{\"name\": \"customers\", \"type\": \"REPLICATE\"}";
 
     ClusterManagementResult result = restClient.doPostAndAssert("/regions", json, "test", "test")
         .hasStatusCode(201)

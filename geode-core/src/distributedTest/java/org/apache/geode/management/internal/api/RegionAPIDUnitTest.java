@@ -64,10 +64,10 @@ public class RegionAPIDUnitTest {
     locator.invoke(() -> {
       RegionConfig config = new RegionConfig();
       config.setName(regionName);
-      config.setRefid(RegionShortcut.PARTITION.toString());
+      config.setType(RegionShortcut.PARTITION.toString());
       ClusterManagementResult result = ClusterStartupRule.getLocator().getClusterManagementService()
           .create(config);
-      assertThat(result.isSuccessful()).isTrue();
+      assertThat(result.getStatus().getResult()).isEqualTo(Status.Result.SUCCESS);
     });
 
 
@@ -97,10 +97,10 @@ public class RegionAPIDUnitTest {
     locator.invoke(() -> {
       RegionConfig config = new RegionConfig();
       config.setName(regionName);
-      config.setRefid(RegionShortcut.REPLICATE.toString());
+      config.setType(RegionShortcut.REPLICATE.toString());
       ClusterManagementResult result = ClusterStartupRule.getLocator().getClusterManagementService()
           .create(config);
-      assertThat(result.isSuccessful()).isTrue();
+      assertThat(result.getStatus().getResult()).isEqualTo(Status.Result.SUCCESS);
     });
 
     server.invoke(() -> {
@@ -122,10 +122,10 @@ public class RegionAPIDUnitTest {
     locator.invoke(() -> {
       RegionConfig config = new RegionConfig();
       config.setName(regionName);
-      config.setRefid(RegionShortcut.PARTITION.toString());
+      config.setType(RegionShortcut.PARTITION.toString());
       ClusterManagementResult result = ClusterStartupRule.getLocator().getClusterManagementService()
           .create(config);
-      assertThat(result.isSuccessful()).isTrue();
+      assertThat(result.getStatus().getResult()).isEqualTo(Status.Result.SUCCESS);
     });
 
     gfsh.executeAndAssertThat("list regions")
@@ -142,7 +142,7 @@ public class RegionAPIDUnitTest {
       RegionConfig regionConfig = regions.get(1);
       assertThat(regionConfig).isNotNull();
       assertThat(regionConfig.getName()).isEqualTo(regionName);
-      assertThat(regionConfig.getRefid()).isEqualTo("PARTITION");
+      assertThat(regionConfig.getType()).isEqualTo("PARTITION");
       assertThat(regionConfig.getIndexes()).isEmpty();
       assertThat(regionConfig.getRegions()).isEmpty();
       assertThat(regionConfig.getEntries()).isEmpty();

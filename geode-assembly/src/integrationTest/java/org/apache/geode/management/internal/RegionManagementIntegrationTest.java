@@ -50,7 +50,7 @@ public class RegionManagementIntegrationTest {
   public void failsIfNoMembersExists() throws Exception {
     RegionConfig regionConfig = new RegionConfig();
     regionConfig.setName("customers");
-    regionConfig.setRefid("REPLICATE");
+    regionConfig.setType("REPLICATE");
 
     ObjectMapper mapper = new ObjectMapper();
     String json = mapper.writeValueAsString(regionConfig);

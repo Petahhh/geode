@@ -19,8 +19,11 @@ package org.apache.geode.management.internal.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
+
+import org.apache.geode.cache.configuration.RegionConfig;
 
 public class ClusterManagementResultTest {
   private ClusterManagementResult result;
@@ -32,40 +35,32 @@ public class ClusterManagementResultTest {
 
   @Test
   public void failsWhenNotAppliedOnAllMembers() {
-    result.addMemberStatus("member-1", true, "msg-1");
-    result.addMemberStatus("member-2", false, "msg-2");
-    assertThat(result.isSuccessfullyAppliedOnMembers()).isFalse();
-    assertThat(result.isSuccessful()).isFalse();
+    result.addMemberStatus("member-1", new Status(true, "msg-1"));
+    result.addMemberStatus("member-2", new Status(false, "msg-2"));
+    assertThat(result.getStatus().getResult()).isEqualTo(Status.Result.FAILURE);
   }
 
   @Test
   public void successfulOnlyWhenResultIsSuccessfulOnAllMembers() {
-    result.addMemberStatus("member-1", true, "msg-1");
-    result.addMemberStatus("member-2", true, "msg-2");
-    assertThat(result.isSuccessfullyAppliedOnMembers()).isTrue();
-    assertThat(result.isSuccessful()).isTrue();
+    result.addMemberStatus("member-1", new Status(true, "msg-1"));
+    result.addMemberStatus("member-2", new Status(true, "msg-2"));
+    assertThat(result.getStatus().getResult()).isEqualTo(Status.Result.SUCCESS);
   }
-
-  @Test
-  public void emptyMemberStatus() {
-    assertThat(result.isSuccessfullyAppliedOnMembers()).isFalse();
-    assertThat(result.isSuccessfullyPersisted()).isFalse();
-    assertThat(result.isSuccessful()).isFalse();
-  }
-
 
   @Test
   public void failsWhenNotPersisted() {
-    result.setClusterConfigPersisted(false, "msg-1");
-    assertThat(result.isSuccessfullyPersisted()).isFalse();
-    assertThat(result.isSuccessful()).isFalse();
+    result.setClusterConfigPersisted(new Status(false, "msg-1"));
+    assertThat(result.getStatus().getResult()).isEqualTo(Status.Result.FAILURE);
   }
 
   @Test
-  public void failsWhenNoMembersExists() {
-    result.setClusterConfigPersisted(true, "msg-1");
-    assertThat(result.isSuccessfullyPersisted()).isTrue();
-    assertThat(result.isSuccessfullyAppliedOnMembers()).isFalse();
-    assertThat(result.isSuccessful()).isFalse();
+  public void deserializesFromJson() throws Exception {
+    String json = "{\"name\": \"customers\", \"type\": \"REPLICATE\"}";
+    ObjectMapper mapper = new ObjectMapper();
+    RegionConfig config = mapper.readValue(json, RegionConfig.class);
+
+    assertThat(config).isNotNull();
+    assertThat(config.getName()).isEqualTo("customers");
+    assertThat(config.getType()).isEqualTo("REPLICATE");
   }
 }

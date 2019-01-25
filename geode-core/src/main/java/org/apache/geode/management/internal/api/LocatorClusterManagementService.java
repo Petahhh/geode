@@ -37,6 +37,8 @@ import org.apache.geode.management.internal.cli.functions.CliFunctionResult;
 import org.apache.geode.management.internal.cli.functions.UpdateCacheFunction;
 import org.apache.geode.management.internal.configuration.mutators.ConfigurationMutator;
 import org.apache.geode.management.internal.configuration.mutators.ConfigurationMutatorFactory;
+import org.apache.geode.management.internal.configuration.validators.ConfigurationValidator;
+import org.apache.geode.management.internal.configuration.validators.ConfigurationValidatorFactory;
 import org.apache.geode.management.internal.exceptions.EntityExistsException;
 import org.apache.geode.management.internal.exceptions.NoMembersException;
 
@@ -55,15 +57,22 @@ public class LocatorClusterManagementService implements ClusterManagementService
   public ClusterManagementResult create(CacheElement config) {
     ClusterManagementResult result = new ClusterManagementResult();
     String group = "cluster";
-    ConfigurationMutator configurationMutator =
-        (new ConfigurationMutatorFactory()).generate(config);
+
+    // validate config fields and apply defaults if necessary
+    ConfigurationValidator configurationValidator =
+        (new ConfigurationValidatorFactory()).generate(config);
+    CacheElement validatedConfig = configurationValidator.setDefaultsAndValidate(config);
+
     final boolean configurationPersistenceEnabled = persistenceService != null;
 
+    ConfigurationMutator configurationMutator =
+        (new ConfigurationMutatorFactory()).generate(validatedConfig);
     // exit early if config element already exists in cache config
     if (configurationPersistenceEnabled) {
       CacheConfig currentPersistedConfig = persistenceService.getCacheConfig(group, true);
-      if (configurationMutator.exists(config, currentPersistedConfig)) {
-        throw new EntityExistsException("cache element " + config.getId() + " already exists.");
+      if (configurationMutator.exists(validatedConfig, currentPersistedConfig)) {
+        throw new EntityExistsException(
+            "cache element " + validatedConfig.getId() + " already exists.");
       }
     }
 
@@ -75,7 +84,7 @@ public class LocatorClusterManagementService implements ClusterManagementService
 
     List<CliFunctionResult> functionResults = executeAndGetFunctionResult(
         new UpdateCacheFunction(),
-        Arrays.asList(config, UpdateCacheFunction.CacheElementOperation.ADD),
+        Arrays.asList(validatedConfig, UpdateCacheFunction.CacheElementOperation.ADD),
         targetedMembers);
     functionResults
         .forEach(functionResult -> result.addMemberStatus(functionResult.getMemberIdOrName(),

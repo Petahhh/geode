@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import org.apache.geode.cache.DataPolicy;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.configuration.CacheConfig;
 import org.apache.geode.management.internal.api.ClusterManagementResult;
@@ -61,6 +62,34 @@ public class RegionManagementDunitTest {
     server.invoke(() -> {
       Region region = ClusterStartupRule.getCache().getRegion("customers");
       assertThat(region).isNotNull();
+      assertThat(region.getAttributes().getDataPolicy()).isEqualTo(DataPolicy.REPLICATE);
+    });
+
+    // make sure region is persisted
+    locator.invoke(() -> {
+      CacheConfig cacheConfig =
+          ClusterStartupRule.getLocator().getConfigurationPersistenceService()
+              .getCacheConfig("cluster");
+      assertThat(cacheConfig.getRegions().get(0).getName()).isEqualTo("customers");
+    });
+  }
+
+  @Test
+  public void createsAPartitionedRegionByDefault() throws Exception {
+    String json = "{\"name\": \"customers\"}";
+
+    ClusterManagementResult result = restClient.doPostAndAssert("/regions", json, "test", "test")
+        .hasStatusCode(201)
+        .getClusterManagementResult();
+
+    assertThat(result.getStatus().getResult()).isEqualTo(Status.Result.SUCCESS);
+    assertThat(result.getMemberStatuses()).containsKeys("server-1").hasSize(1);
+
+    // make sure region is created
+    server.invoke(() -> {
+      Region region = ClusterStartupRule.getCache().getRegion("customers");
+      assertThat(region).isNotNull();
+      assertThat(region.getAttributes().getDataPolicy()).isEqualTo(DataPolicy.PARTITION);
     });
 
     // make sure region is persisted

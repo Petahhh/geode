@@ -228,6 +228,7 @@ public class ClusterStartupRule implements SerializableTestRule {
     final String defaultName = "locator-" + index;
     VM locatorVM = getVM(index, version);
     Locator server = locatorVM.invoke(() -> {
+      System.setProperty("hello-world", "true");
       memberStarter = new LocatorStarterRule();
       LocatorStarterRule locatorStarter = (LocatorStarterRule) memberStarter;
       if (logFile) {

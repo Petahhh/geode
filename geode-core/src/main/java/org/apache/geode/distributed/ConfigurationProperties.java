@@ -1739,6 +1739,18 @@ public interface ConfigurationProperties {
    */
   String START_DEV_REST_API = "start-dev-rest-api";
   /**
+   * The static String definition of the <i>"start-management-rest-api"</i> property <a
+   * name="start-management-rest-api"/a>
+   * </p>
+   * <U>Description</U>: If true then the management REST api service will be started when cache is
+   * created.
+   * </p>
+   * <U>Default</U>: "false"
+   * </p>
+   * <U>Since</U>: GemFire 9.8
+   */
+  String START_MANAGEMENT_REST_API = "start-management-rest-api";
+  /**
    * The static String definition of the <i>"start-locator"</i> property <a name="start-locator"/a>
    * </p>
    * <U>Description</U>: A host name or bind-address and port ("host[port]") that are used to start

@@ -56,9 +56,13 @@ public class DownloadJarFunction implements InternalFunction<Object[]> {
         try {
           File jarFile = sharedConfig.getPathToJarOnThisLocator(group, jarName).toFile();
 
-          RemoteStreamExporter exporter = ((SystemManagementService) SystemManagementService
-              .getExistingManagementService(context.getCache())).getManagementAgent()
-                  .getRemoteStreamExporter();
+          ManagementAgent managementAgent = ((SystemManagementService) SystemManagementService
+              .getExistingManagementService(context.getCache())).getManagementAgent();
+          if (managementAgent == null) {
+            logger.info("Failed to download jar because JMX Management agent is not available. Please ensure geode property jmx-manager is set to true.");
+            throw new IllegalStateException("JMX Management agent is not available. Please ensure geode property jmx-manager is set to true.");
+          }
+          RemoteStreamExporter exporter = managementAgent.getRemoteStreamExporter();
           RemoteInputStreamServer istream = null;
           try {
             istream =

@@ -58,7 +58,7 @@ public class DeployJarWithSSLDUnitTest {
   @Rule
   public GfshCommandRule gfsh = new GfshCommandRule();
 
-  private static MemberVM locator;
+  private static MemberVM locator, locator2;
 
   private File sslConfigFile = null;
 
@@ -93,7 +93,10 @@ public class DeployJarWithSSLDUnitTest {
 
   @Before
   public void before() throws Exception {
+    sslProperties.setProperty("jmx-manager", "false");
     locator = lsRule.startLocatorVM(0, sslProperties);
+    sslProperties.setProperty("jmx-manager", "true");
+    locator2 = lsRule.startLocatorVM(2, sslProperties, locator.getPort());
 
     sslConfigFile = temporaryFolder.newFile("ssl.properties");
     FileOutputStream out = new FileOutputStream(sslConfigFile);
@@ -101,14 +104,18 @@ public class DeployJarWithSSLDUnitTest {
   }
 
   @Test
-  public void deployJarToCluster() throws Exception {
-    lsRule.startServerVM(1, sslProperties, locator.getPort());
+  public void deployJarToClusterBUG() throws Exception {
 
-    gfsh.connectAndVerify(locator.getPort(), GfshCommandRule.PortType.locator,
+    gfsh.connectAndVerify(locator2.getPort(), GfshCommandRule.PortType.locator,
         "security-properties-file", sslConfigFile.getAbsolutePath());
 
     String clusterJar = createJarFileWithClass("Cluster", "cluster.jar", temporaryFolder.getRoot());
     gfsh.executeAndAssertThat("deploy --jar=" + clusterJar).statusIsSuccess();
+
+    Thread.sleep(3000);
+    locator2.stopVM(true);
+
+    lsRule.startServerVM(1, sslProperties, locator.getPort());
   }
 
   @Test

@@ -80,6 +80,7 @@ import org.apache.geode.distributed.DistributedLockService;
 import org.apache.geode.distributed.DistributedMember;
 import org.apache.geode.distributed.DistributedSystem;
 import org.apache.geode.distributed.internal.locks.DLockService;
+import org.apache.geode.internal.cache.ClusterConfigurationLoader;
 import org.apache.geode.internal.cache.InternalCache;
 import org.apache.geode.internal.cache.InternalRegionArguments;
 import org.apache.geode.internal.cache.persistence.PersistentMemberID;
@@ -498,6 +499,10 @@ public class InternalConfigurationPersistenceService implements ConfigurationPer
     input.close();
 
     return tempJar.toFile();
+    /*
+      ClusterConfigurationLoader loader = new ClusterConfigurationLoader();
+      return loader.downloadJar(locator, groupName, jarName);
+     */
   }
 
   /**

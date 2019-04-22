@@ -34,6 +34,7 @@ import org.apache.geode.distributed.internal.InternalConfigurationPersistenceSer
 import org.apache.geode.distributed.internal.InternalLocator;
 import org.apache.geode.internal.cache.execute.InternalFunction;
 import org.apache.geode.internal.logging.LogService;
+import org.apache.geode.management.internal.ManagementAgent;
 import org.apache.geode.management.internal.SystemManagementService;
 
 public class DownloadJarFunction implements InternalFunction<Object[]> {
@@ -59,8 +60,10 @@ public class DownloadJarFunction implements InternalFunction<Object[]> {
           ManagementAgent managementAgent = ((SystemManagementService) SystemManagementService
               .getExistingManagementService(context.getCache())).getManagementAgent();
           if (managementAgent == null) {
-            logger.info("Failed to download jar because JMX Management agent is not available. Please ensure geode property jmx-manager is set to true.");
-            throw new IllegalStateException("JMX Management agent is not available. Please ensure geode property jmx-manager is set to true.");
+            logger.info(
+                "Failed to download jar because JMX Management agent is not available. Please ensure geode property jmx-manager is set to true.");
+            throw new IllegalStateException(
+                "JMX Management agent is not available. Please ensure geode property jmx-manager is set to true.");
           }
           RemoteStreamExporter exporter = managementAgent.getRemoteStreamExporter();
           RemoteInputStreamServer istream = null;

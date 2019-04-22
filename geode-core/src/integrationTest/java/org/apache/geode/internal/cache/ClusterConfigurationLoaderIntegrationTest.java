@@ -114,6 +114,11 @@ public class ClusterConfigurationLoaderIntegrationTest {
     assertThat(customAnswer.calls).isEqualTo(mockLimit);
   }
 
+  @Test
+  public void downloadJarThrowsIllegalStateExceptionWhenExecuteReturnsAnException() {
+
+  }
+
   class CustomAnswer implements Answer {
     public int calls;
     public int mockLimit;

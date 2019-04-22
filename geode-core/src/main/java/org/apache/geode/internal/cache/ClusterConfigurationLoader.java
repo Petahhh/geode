@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.UnknownHostException;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -133,7 +134,7 @@ public class ClusterConfigurationLoader {
     return results;
   }
 
-  public File downloadJar(DistributedMember locator, String groupName, String jarName)
+  public static File downloadJar(DistributedMember locator, String groupName, String jarName)
       throws IOException {
     ResultCollector<RemoteInputStream, List<RemoteInputStream>> rc =
         (ResultCollector<RemoteInputStream, List<RemoteInputStream>>) CliUtil.executeFunction(
@@ -141,10 +142,14 @@ public class ClusterConfigurationLoader {
             Collections.singleton(locator));
 
     List<RemoteInputStream> result = rc.getResult();
+    if (result.get(0) instanceof Throwable) {
+      throw new IllegalStateException(((Throwable) result.get(0)).getMessage());
+    }
 
     Path tempDir = FileUploader.createSecuredTempDirectory("deploy-");
     Path tempJar = Paths.get(tempDir.toString(), jarName);
     FileOutputStream fos = new FileOutputStream(tempJar.toString());
+
 
     InputStream jarStream = RemoteInputStreamClient.wrap(result.get(0));
     IOUtils.copyLarge(jarStream, fos);

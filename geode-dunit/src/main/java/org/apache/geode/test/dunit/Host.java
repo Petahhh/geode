@@ -137,6 +137,7 @@ public abstract class Host implements Serializable {
    * @deprecated use the static methods in VM instead
    */
   public VM getVM(int n) {
+
     int size = vms.size();
     if (n >= size) {
       String s = "Cannot request VM " + n + ".  There are only " + size + " VMs on " + this;

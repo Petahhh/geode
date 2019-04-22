@@ -15,13 +15,9 @@
 
 package org.apache.geode.management.internal.configuration;
 
-import static org.apache.geode.util.test.TestUtil.getResourcePath;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.junit.Before;
@@ -29,15 +25,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import org.apache.geode.security.GemFireSecurityException;
 import org.apache.geode.test.compiler.ClassBuilder;
-import org.apache.geode.test.dunit.Host;
 import org.apache.geode.test.dunit.IgnoredException;
-import org.apache.geode.test.dunit.RMIException;
 import org.apache.geode.test.dunit.VM;
 import org.apache.geode.test.dunit.rules.ClusterStartupRule;
 import org.apache.geode.test.dunit.rules.MemberVM;
 import org.apache.geode.test.junit.rules.GfshCommandRule;
+import org.apache.geode.test.junit.rules.LocatorStarterRule;
 import org.apache.geode.test.junit.rules.ServerStarterRule;
 
 
@@ -54,19 +48,16 @@ public class DownloadJarFunctionDUnitTest {
 
   private static MemberVM locatorWithJMX, locatorWithoutJMX;
 
-  private File sslConfigFile = null;
-
-
   @Before
   public void before() throws Exception {
-    locatorWithoutJMX = clusterStartupRule.startLocatorVM(0, p -> p.withProperty("jmx-manager", "false"));
+    locatorWithoutJMX =
+        clusterStartupRule.startLocatorVM(0, p -> p.withProperty("jmx-manager", "false"));
     locatorWithJMX = clusterStartupRule.startLocatorVM(1, locatorWithoutJMX.getPort());
   }
 
   @Test
-  public void downloadJarThrowsErrorWhenJMXIsOff() throws Exception {
-    IgnoredException.addIgnoredException("NullPointerException");
-    IgnoredException.addIgnoredException("ClassCastException");
+  public void downloadJarOnServerThrowsErrorWhenJMXIsOff() throws Exception {
+    IgnoredException.addIgnoredException("IllegalStateException");
 
     gfsh.connectAndVerify(locatorWithJMX.getPort(), GfshCommandRule.PortType.locator);
 
@@ -80,10 +71,30 @@ public class DownloadJarFunctionDUnitTest {
     server.invoke(() -> {
       ServerStarterRule serverRule = new ServerStarterRule();
       serverRule.withConnectionToLocator(locatorPort).withAutoStart();
-      assertThatThrownBy(() -> serverRule.before()).isInstanceOf(GemFireSecurityException.class)
+      assertThatThrownBy(() -> serverRule.before()).isInstanceOf(IllegalStateException.class)
           .hasMessageContaining("JMX Management agent is not available. ");
     });
+  }
 
+  @Test
+  public void downloadJarOnLocatorThrowsErrorWhenJMXIsOff() throws Exception {
+    IgnoredException.addIgnoredException("IllegalStateException");
+
+    gfsh.connectAndVerify(locatorWithJMX.getPort(), GfshCommandRule.PortType.locator);
+
+    String clusterJar = createJarFileWithClass("Cluster", "cluster.jar", temporaryFolder.getRoot());
+    gfsh.executeAndAssertThat("deploy --jar=" + clusterJar).statusIsSuccess();
+
+    locatorWithJMX.stop();
+    int locatorPort = locatorWithoutJMX.getPort();
+
+    VM locator = VM.getVM(2);
+    locator.invoke(() -> {
+      LocatorStarterRule locatorRule = new LocatorStarterRule();
+      locatorRule.withConnectionToLocator(locatorPort).withAutoStart();
+      assertThatThrownBy(() -> locatorRule.before()).isInstanceOf(IllegalStateException.class)
+          .hasMessageContaining("JMX Management agent is not available. ");
+    });
   }
 
   private String createJarFileWithClass(String className, String jarName, File dir)

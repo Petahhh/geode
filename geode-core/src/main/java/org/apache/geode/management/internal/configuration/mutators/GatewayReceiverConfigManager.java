@@ -15,14 +15,24 @@
 
 package org.apache.geode.management.internal.configuration.mutators;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import javax.management.ObjectName;
 
 import org.apache.commons.lang3.NotImplementedException;
 
+import org.apache.geode.annotations.VisibleForTesting;
 import org.apache.geode.cache.configuration.CacheConfig;
+import org.apache.geode.distributed.DistributedMember;
 import org.apache.geode.internal.cache.InternalCache;
+import org.apache.geode.management.DistributedSystemMXBean;
+import org.apache.geode.management.GatewayReceiverMXBean;
+import org.apache.geode.management.ManagementService;
 import org.apache.geode.management.configuration.GatewayReceiverConfig;
 import org.apache.geode.management.configuration.RuntimeCacheElement;
+import org.apache.geode.management.internal.MBeanJMXAdapter;
+import org.apache.geode.management.internal.SystemManagementService;
 
 public class GatewayReceiverConfigManager implements ConfigurationManager<GatewayReceiverConfig> {
   final private InternalCache cache;
@@ -52,6 +62,43 @@ public class GatewayReceiverConfigManager implements ConfigurationManager<Gatewa
 
     //TODO / Open Question: What object does Geode use to represent information about GWR?
     // This will impact the type of return object for ths method
+
+    // Get gatewayreceiverbeans
+    List<GatewayReceiverMXBean> GatewayReceiverMXBeans = getGatewayReceiverMXBeans();
+    // Transform gatewayreceiver beans into RuntimeGatewayReceiverConfig
+
     return null;
   }
+
+  @VisibleForTesting
+  List<GatewayReceiverMXBean> getGatewayReceiverMXBeans(DistributedSystemMXBean distributedSystemMXBean, List<DistributedMember> members) {
+    List<GatewayReceiverMXBean> gatewayReceiverMXBeans = new ArrayList<>();
+    for (DistributedMember member : members) {
+      GatewayReceiverMXBean bean = getGatewayReceiverMXBean(distributedSystemMXBean, member);
+      if (bean != null) {
+        gatewayReceiverMXBeans.add(bean);
+      }
+    }
+
+    return gatewayReceiverMXBeans;
+   }
+
+  @VisibleForTesting
+  GatewayReceiverMXBean getGatewayReceiverMXBean(DistributedSystemMXBean distributedSystemMXBean, DistributedMember member
+      ) {
+    ObjectName gatewayReceiverObjectName = MBeanJMXAdapter.getGatewayReceiverMBeanName(member);
+    GatewayReceiverMXBean gatewayReceiverMXBean = null;
+    if (gatewayReceiverObjectName != null) {
+      gatewayReceiverMXBean =
+          getSystemManagementService().getMBeanProxy(gatewayReceiverObjectName, GatewayReceiverMXBean.class);
+    }
+
+    return gatewayReceiverMXBean;
+  }
+
+  @VisibleForTesting
+  SystemManagementService getSystemManagementService() {
+    return (SystemManagementService) ManagementService.getExistingManagementService(cache);
+  }
+
 }

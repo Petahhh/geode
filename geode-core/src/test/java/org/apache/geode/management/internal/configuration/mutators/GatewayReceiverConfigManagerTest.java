@@ -15,33 +15,36 @@
 
 package org.apache.geode.management.internal.configuration.mutators;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.when;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.apache.geode.cache.configuration.CacheConfig;
-import org.apache.geode.distributed.DistributedMember;
-import org.apache.geode.distributed.internal.DistributionManager;
-import org.apache.geode.distributed.internal.membership.InternalDistributedMember;
-import org.apache.geode.distributed.internal.membership.MembershipManager;
+import org.apache.geode.cache.wan.GatewayReceiver;
 import org.apache.geode.internal.cache.InternalCache;
+import org.apache.geode.management.DistributedSystemMXBean;
+import org.apache.geode.management.GatewayReceiverMXBean;
+import org.apache.geode.management.ManagementService;
 import org.apache.geode.management.configuration.GatewayReceiverConfig;
-import org.apache.geode.management.configuration.MemberConfig;
-import org.apache.geode.management.internal.cli.domain.CacheServerInfo;
+import org.apache.geode.management.internal.SystemManagementService;
 
 public class GatewayReceiverConfigManagerTest {
   private GatewayReceiverConfigManager gatewayReceiverConfigManager;
   private GatewayReceiverConfig mockGatewayReceiverConfig;
   private CacheConfig mockCacheConfig;
+  private InternalCache cache;
 
   @Before
   public void setUp() throws Exception {
-    InternalCache cache = mock(InternalCache.class);
+    cache = mock(InternalCache.class);
     gatewayReceiverConfigManager = new GatewayReceiverConfigManager(cache);
     mockGatewayReceiverConfig = mock(GatewayReceiverConfig.class);
     mockCacheConfig = mock(CacheConfig.class);
@@ -59,27 +62,51 @@ public class GatewayReceiverConfigManagerTest {
 
   @Test
   public void cacheHasGatewayReceiver() {
-
+    HashSet<GatewayReceiver> gatewayReceiver = new HashSet<>();
+    gatewayReceiver.add(mock(GatewayReceiver.class));
+    when(cache.getGatewayReceivers()).thenReturn(gatewayReceiver);
+    List<?>
+        gateways =
+        gatewayReceiverConfigManager.list(new GatewayReceiverConfig(), mockCacheConfig);
+    assertThat(gateways).hasSize(1);
   }
 
   @Test
   public void cacheHasNoGatewayReceiver() {
+    List<?>
+        gateways =
+        gatewayReceiverConfigManager.list(new GatewayReceiverConfig(), mockCacheConfig);
+    assertThat(gateways).isEmpty();
 
   }
 
-  @Test(expected= NotImplementedException.class)
+  @Test
+  public void testGetGatewayReceiverMXBeans() {
+    SystemManagementService managementService = mock(SystemManagementService.class);
+    when(gatewayReceiverConfigManager.getSystemManagementService()).thenReturn(managementService);
+    DistributedSystemMXBean distributedSystemMXBean = mock(DistributedSystemMXBean.class);
+    when(managementService.getDistributedSystemMXBean()).thenReturn(distributedSystemMXBean);
+    GatewayReceiverMXBean gatewayReceiverMXBean = mock(GatewayReceiverMXBean.class);
+    when(gatewayReceiverConfigManager.getGatewayReceiverMXBeans()).thenReturn(Arrays.asList(gatewayReceiverMXBean));
+    assertThat(gatewayReceiverConfigManager.getGatewayReceiverMXBeans().size()).isEqualTo(1);
+  }
+
+  @Test(expected = NotImplementedException.class)
   public void addNotImplemented() {
     gatewayReceiverConfigManager.add(mockGatewayReceiverConfig, mockCacheConfig);
   }
 
-  @Test(expected=NotImplementedException.class)
+  @Test(expected = NotImplementedException.class)
   public void updateNotImplemented() {
     gatewayReceiverConfigManager.update(mockGatewayReceiverConfig, mockCacheConfig);
   }
 
-  @Test(expected=NotImplementedException.class)
+  @Test(expected = NotImplementedException.class)
   public void deleteNotImplemented() {
     gatewayReceiverConfigManager.delete(mockGatewayReceiverConfig, mockCacheConfig);
   }
+
+
+
 
 }

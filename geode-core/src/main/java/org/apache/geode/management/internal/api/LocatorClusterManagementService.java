@@ -201,6 +201,11 @@ public class LocatorClusterManagementService implements ClusterManagementService
       }
     }
 
+    /*
+    TODO#1: Not all CacheElements need to implement RuntimeCacheElement. RuntimeCacheElements have .getGroups.
+    If we remove this block into a helper method that some *ConfigManagers can use, then we can remove
+    GatewayReceiverConfig's implementation of RuntimeCacheElement.
+     */
     // filtering by group. Do this after iterating through all the groups because some region might
     // belong to multiple groups and we want the "group" field to show that.
     if (StringUtils.isNotBlank(filter.getGroup())) {

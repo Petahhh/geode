@@ -30,7 +30,6 @@ public class GatewayReceiverConfigManager
     this.cache = cache;
   }
 
-
   @Override
   public void add(GatewayReceiverConfig config, CacheConfig existing) {
     existing.setGatewayReceiver(config);

@@ -78,9 +78,12 @@ public class GatewayReceiverRealizer
       }
     }
 
-    gatewayReceiverFactory.create();
-    RealizationResult result = new RealizationResult().setSuccess(true);
-    return result;
+    try {
+      gatewayReceiverFactory.create();
+    } catch (RuntimeException e) {
+      return new RealizationResult().setSuccess(false).setMessage(e.getMessage());
+    }
+    return new RealizationResult().setSuccess(true);
   }
 
   @Override

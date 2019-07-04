@@ -38,27 +38,27 @@ public class GatewayReceiverManagementDUnitTest {
   @ClassRule
   public static ClusterStartupRule cluster = new ClusterStartupRule();
 
-  private static MemberVM locator, server;
+  private static MemberVM locator;
   private static ClusterManagementService cms;
   private GatewayReceiverConfig receiver;
 
   @BeforeClass
-  public static void beforeClass() throws Exception {
+  public static void beforeClass() {
     locator = cluster.startLocatorVM(0,
         l -> l.withSecurityManager(SimpleSecurityManager.class).withHttpService());
     int locatorPort = locator.getPort();
-    server = cluster.startServerVM(1, s -> s.withConnectionToLocator(locatorPort)
+    cluster.startServerVM(1, s -> s.withConnectionToLocator(locatorPort)
         .withProperty("groups", "group1")
         .withCredential("cluster", "cluster"));
   }
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     receiver = new GatewayReceiverConfig();
   }
 
   @Test
-  public void withInsuffientCredential() throws Exception {
+  public void withInsuffientCredential() {
     cms = ClusterManagementServiceBuilder.buildWithHostAddress()
         .setHostAddress("localhost", locator.getHttpPort())
         .setCredentials("test", "test").build();
@@ -69,7 +69,7 @@ public class GatewayReceiverManagementDUnitTest {
   }
 
   @Test
-  public void createGWR() throws Exception {
+  public void createGWR() {
     cms = ClusterManagementServiceBuilder.buildWithHostAddress()
         .setHostAddress("localhost", locator.getHttpPort())
         .setCredentials("cluster", "cluster").build();

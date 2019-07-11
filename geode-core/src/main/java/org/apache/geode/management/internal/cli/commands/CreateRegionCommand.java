@@ -18,12 +18,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import joptsimple.internal.Strings;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -315,7 +314,7 @@ public class CreateRegionCommand extends SingleGfshCommand {
           !colocatedRegionBean.getRegionType().equals("PERSISTENT_PARTITION")) {
         return ResultModel.createError(CliStrings.format(
             CliStrings.CREATE_REGION__MSG__COLOCATEDWITH_REGION_0_IS_NOT_PARTITIONEDREGION,
-            (Object) prColocatedWith));
+            prColocatedWith));
       }
     }
 
@@ -643,19 +642,15 @@ public class CreateRegionCommand extends SingleGfshCommand {
   }
 
   private boolean diskStoreExists(String diskStoreName) {
-    ManagementService managementService = getManagementService();
-    DistributedSystemMXBean dsMXBean = managementService.getDistributedSystemMXBean();
-    Map<String, String[]> diskstore = dsMXBean.listMemberDiskstore();
+    DistributedSystemMXBean dsMXBean = getManagementService().getDistributedSystemMXBean();
 
-    Set<Map.Entry<String, String[]>> entrySet = diskstore.entrySet();
-
-    for (Map.Entry<String, String[]> entry : entrySet) {
-      String[] value = entry.getValue();
-      if (diskStoreName != null && ArrayUtils.contains(value, diskStoreName)) {
+    for (String memberName: dsMXBean.listMembers()) {
+      try {
+        dsMXBean.fetchDiskStoreObjectName(memberName, diskStoreName);
         return true;
+      } catch (Exception ignored) {
       }
     }
-
     return false;
   }
 
